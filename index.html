@@ -98,6 +98,12 @@
   .module-card li:first-child{border-top:none;}
   .module-card li::before{content:"→"; color:var(--blue); flex-shrink:0;}
 
+  /* roadmap */
+  .roadmap-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .roadmap-card{border:0.5px solid var(--line); border-radius:14px; padding:26px; background:#fff;}
+  .roadmap-card h4{font-family:'Fraunces', serif; font-size:18px; font-weight:500; margin-bottom:8px;}
+  .roadmap-card p{font-size:14px; color:var(--ink-soft);}
+
   /* AI assistant section */
   .ai-section{background:#171512; border-radius:20px; margin:0 32px; padding:64px 56px; color:#f0ece2;}
   .ai-grid{display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:start;}
@@ -213,6 +219,7 @@
         <li><a href="#w-akcji">Zobacz w akcji</a></li>
         <li><a href="#score">Deal Score</a></li>
         <li><a href="#przewaga">Przewaga</a></li>
+        <li><a href="#roadmap">Co dalej</a></li>
         <li><a href="#ekosystem">Ekosystem</a></li>
       </ul>
     </nav>
@@ -476,6 +483,48 @@
         <span class="adv-num">03</span>
         <h4>Uzasadnienie, nie tylko liczba</h4>
         <p>AI tłumaczy dlaczego oferta wygląda dobrze lub źle — czyta opis i kontekst, nie tylko liczy średnią.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Co planujemy dalej</span>
+      <h2>Więcej niż wyszukiwarka z alertami</h2>
+      <p>Moduł 1 to dopiero początek. Oto co dochodzi w kolejnych etapach — celujemy w narzędzie, które prowadzi inwestora od namierzenia okazji aż po decyzję.</p>
+    </div>
+    <div class="roadmap-grid">
+      <div class="roadmap-card">
+        <span class="tag tag-soon">Planowane</span>
+        <h4>Aplikacja mobilna z powiadomieniami push</h4>
+        <p>Natychmiastowa informacja o nowej okazji czy spadku ceny — bez czekania na maila.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-soon">Planowane</span>
+        <h4>Priorytetowy dostęp w planie VIP</h4>
+        <p>Najlepsze okazje trafiają do wybranych użytkowników z wyprzedzeniem przed resztą rynku.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-soon">Planowane</span>
+        <h4>Wyszukiwanie głosowe i czatowe</h4>
+        <p>Opisz czego szukasz własnymi słowami — Radar sam przełoży to na konkretne kryteria.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-soon">Planowane</span>
+        <h4>Zweryfikowane oględziny na miejscu</h4>
+        <p>Opcjonalny dodatek premium — ktoś sprawdza nieruchomość dla Ciebie, zanim podejmiesz decyzję.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-soon">Planowane</span>
+        <h4>Portfolio wielu nieruchomości</h4>
+        <p>Śledzenie rentowności całego portfela inwestycji, nie tylko pojedynczej transakcji.</p>
+      </div>
+      <div class="roadmap-card">
+        <span class="tag tag-soon">Planowane</span>
+        <h4>Wsparcie w negocjacjach</h4>
+        <p>Punkt startowy do rozmowy o cenie na podstawie danych transakcyjnych z okolicy.</p>
       </div>
     </div>
   </div>
