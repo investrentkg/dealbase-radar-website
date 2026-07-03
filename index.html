@@ -190,6 +190,13 @@
   .ai-pick .pick-label{font-size:11px; font-weight:600; letter-spacing:0.5px; color:var(--blue); text-transform:uppercase; margin-bottom:5px;}
   .ai-pick .pick-title{font-size:14px; font-weight:500; margin-bottom:6px;}
   .ai-pick .pick-reason{font-size:13px; color:var(--ink-soft); line-height:1.55;}
+  .offer-featured{border:1.5px solid #c9a24a; border-radius:12px; padding:14px 16px; margin:12px 0; background:linear-gradient(135deg, #fdf8ec, #fff);}
+  .offer-featured .offer-row{border-top:none; padding:2px 0 10px;}
+  .reco-details summary{list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#8a6a1c; background:#f3e8d8; padding:5px 12px; border-radius:20px; width:fit-content;}
+  .reco-details summary::-webkit-details-marker{display:none;}
+  .reco-details summary::after{content:"▾"; font-size:10px; margin-left:2px;}
+  .reco-details[open] summary::after{content:"▴";}
+  .reco-body{font-size:13px; color:var(--ink-soft); line-height:1.55; padding:12px 4px 2px;}
   .app-main{padding:24px 26px;}
   .app-filters{display:flex; gap:8px; margin-bottom:18px;}
   .filter-chip{font-size:12px; padding:6px 12px; border-radius:20px; border:0.5px solid var(--line); color:var(--ink-soft);}
@@ -480,24 +487,21 @@
               <span class="filter-chip">Licytacje i udziały</span>
             </div>
 
-            <div class="ai-pick">
-              <div class="badge-ic">✦</div>
-              <div>
-                <div class="pick-label">DealBase Radar poleca</div>
-                <div class="pick-title">Mieszkanie 3-pok, Lechitów — Score 91</div>
-                <div class="pick-reason">W tej okolicy oferty znikają średnio o 40% szybciej niż miesiąc temu, a ceny transakcyjne rosną — popyt wyraźnie przewyższa podaż. Ta oferta stoi 8% poniżej trendu, który Radar obserwuje na bieżąco w tej lokalizacji. Warto się pospieszyć.</div>
+            <div class="offer-featured">
+              <div class="offer-row">
+                <div class="score-badge score-high">91</div>
+                <div class="offer-info">
+                  <div class="title">Mieszkanie 3-pok, Lechitów · 61 m²</div>
+                  <div class="meta">450 m od plaży · piętro 2/4 · rynek wtórny</div>
+                </div>
+                <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,8 16,10 32,14 48,12 64,18" fill="none" stroke="#639922" stroke-width="2"/></svg>
+                <span class="offer-source">Otodom</span>
+                <div class="offer-price">598 000 zł<span class="per">9 800 zł/m²</span></div>
               </div>
-            </div>
-
-            <div class="offer-row">
-              <div class="score-badge score-high">91</div>
-              <div class="offer-info">
-                <div class="title">Mieszkanie 3-pok, Lechitów · 61 m²</div>
-                <div class="meta">450 m od plaży · piętro 2/4 · rynek wtórny</div>
-              </div>
-              <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,8 16,10 32,14 48,12 64,18" fill="none" stroke="#639922" stroke-width="2"/></svg>
-              <span class="offer-source">Otodom</span>
-              <div class="offer-price">598 000 zł<span class="per">9 800 zł/m²</span></div>
+              <details class="reco-details">
+                <summary>✦ DealBase Radar poleca</summary>
+                <div class="reco-body">W tej okolicy oferty znikają średnio o 40% szybciej niż miesiąc temu, a ceny transakcyjne rosną — popyt wyraźnie przewyższa podaż. Ta oferta stoi 8% poniżej trendu, który Radar obserwuje na bieżąco w tej lokalizacji. Warto się pospieszyć.</div>
+              </details>
             </div>
 
             <div class="offer-row">
@@ -511,15 +515,21 @@
               <div class="offer-price">612 000 zł<span class="per">cena wywołania</span></div>
             </div>
 
-            <div class="offer-row">
-              <div class="score-badge score-high">87</div>
-              <div class="offer-info">
-                <div class="title">Mieszkanie 2-pok, Podczele · 48 m²</div>
-                <div class="meta">1,1 km do centrum · piętro 1/3 · rynek wtórny</div>
+            <div class="offer-featured">
+              <div class="offer-row">
+                <div class="score-badge score-high">87</div>
+                <div class="offer-info">
+                  <div class="title">Mieszkanie 2-pok, Podczele · 48 m²</div>
+                  <div class="meta">1,1 km do centrum · piętro 1/3 · rynek wtórny</div>
+                </div>
+                <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,6 16,9 32,8 48,13 64,15" fill="none" stroke="#639922" stroke-width="2"/></svg>
+                <span class="offer-source">OLX</span>
+                <div class="offer-price">465 000 zł<span class="per">9 690 zł/m²</span></div>
               </div>
-              <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,6 16,9 32,8 48,13 64,15" fill="none" stroke="#639922" stroke-width="2"/></svg>
-              <span class="offer-source">OLX</span>
-              <div class="offer-price">465 000 zł<span class="per">9 690 zł/m²</span></div>
+              <details class="reco-details">
+                <summary>✦ DealBase Radar poleca</summary>
+                <div class="reco-body">Podczele to jedna z niewielu okolic, gdzie liczba nowych ofert spada od trzech miesięcy z rzędu, a mimo to ceny nie rosną tak szybko jak popyt by sugerował — to sygnał, że sprzedający wciąż nie widzą pełnej wartości tej lokalizacji. Dobry moment na wejście, zanim rynek to skoryguje.</div>
+              </details>
             </div>
 
             <div class="offer-row">
