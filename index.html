@@ -98,6 +98,22 @@
   .module-card li:first-child{border-top:none;}
   .module-card li::before{content:"→"; color:var(--blue); flex-shrink:0;}
 
+  /* AI assistant section */
+  .ai-section{background:#171512; border-radius:20px; margin:0 32px; padding:64px 56px; color:#f0ece2;}
+  .ai-grid{display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:start;}
+  .ai-badge{display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:20px; border:0.5px solid #423f37; font-size:12px; color:#a8a49a; margin-bottom:22px;}
+  .ai-badge .dot{width:6px; height:6px; border-radius:50%; background:var(--blue-light);}
+  .ai-section h2{color:#f0ece2; font-size:32px;}
+  .ai-section .lead-sm{color:#a8a49a; font-size:15px; margin-top:14px; max-width:420px;}
+  .data-sources{display:flex; flex-direction:column; gap:0;}
+  .source-row{display:flex; gap:18px; padding:22px 0; border-top:0.5px solid #2c2a25;}
+  .source-row:first-child{border-top:none; padding-top:0;}
+  .source-icon{width:38px; height:38px; border-radius:10px; background:#1f2b26; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--blue-light); font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:500;}
+  .source-row h4{font-family:'Fraunces', serif; font-size:17px; font-weight:500; margin-bottom:6px; color:#f0ece2;}
+  .source-row p{font-size:14px; color:#a8a49a; line-height:1.55;}
+  .ai-footnote{margin-top:26px; padding-top:20px; border-top:0.5px solid #2c2a25; font-size:13px; color:#7a7768; display:flex; gap:10px;}
+  .ai-footnote .m{color:var(--blue-light); flex-shrink:0;}
+
   /* app preview */
   .app-shell{border:0.5px solid var(--line); border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 24px 60px -30px rgba(33,32,28,0.25);}
   .app-topbar{display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:0.5px solid var(--line); background:var(--cream-2);}
@@ -193,6 +209,7 @@
     <nav>
       <ul>
         <li><a href="#modul">Moduły</a></li>
+        <li><a href="#asystent-ai">Asystent AI</a></li>
         <li><a href="#w-akcji">Zobacz w akcji</a></li>
         <li><a href="#score">Deal Score</a></li>
         <li><a href="#przewaga">Przewaga</a></li>
@@ -208,7 +225,7 @@
     <div>
       <div class="eyebrow"><span class="dot"></span>Zamknięta beta — dla inwestorów, nie dla biur</div>
       <h1>Rynek nieruchomości<br>ma szum. <em>My namierzamy<br>sygnał.</em></h1>
-      <p class="lead">Jedno wyszukiwanie przeszukuje wszystkie polskie portale ogłoszeniowe naraz i ocenia każdą ofertę względem realnych cen transakcyjnych — nie tylko tego, ile sprzedający chciałby dostać.</p>
+      <p class="lead">Asystent AI ocenia każdą ofertę na tle realnych cen transakcyjnych, aktualnych ofert z 7 portali i rosnącej własnej bazy rynkowej — nie zgaduje, tylko liczy na twardych danych.</p>
       <div class="hero-ctas">
         <a href="#kontakt" class="btn btn-primary">Poproś o dostęp →</a>
         <a href="#modul" class="btn btn-ghost">Zobacz jak to działa</a>
@@ -280,6 +297,47 @@
           <li>Panel trendu rynkowego dla lokalizacji</li>
         </ul>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="ai-section" id="asystent-ai">
+  <div class="ai-grid">
+    <div>
+      <div class="ai-badge"><span class="dot"></span>Asystent AI</div>
+      <h2 class="serif">AI, które pokazuje z czego liczy — nie czarna skrzynka</h2>
+      <p class="lead-sm">Nie polegamy na jednym modelu oceniającym "na wyczucie". Każda wycena opiera się na kilku niezależnych, sprawdzalnych źródłach — a asystent tłumaczy, jak do niej doszedł, jak doświadczony rzeczoznawca, nie automat.</p>
+    </div>
+    <div class="data-sources">
+      <div class="source-row">
+        <div class="source-icon">01</div>
+        <div>
+          <h4>Rejestr transakcji RCN / Cenogram</h4>
+          <p>Realne ceny zapłacone za podobne nieruchomości w okolicy — nie ceny życzeniowe sprzedających, tylko to, co rynek faktycznie zaakceptował.</p>
+        </div>
+      </div>
+      <div class="source-row">
+        <div class="source-icon">02</div>
+        <div>
+          <h4>Oferty z 7 portali na żywo</h4>
+          <p>Otodom, OLX, Gratka, Morizon, Nieruchomości-online, Adresowo i Domiporta przeszukiwane w czasie rzeczywistym, żeby uchwycić aktualny poziom cen ofertowych.</p>
+        </div>
+      </div>
+      <div class="source-row">
+        <div class="source-icon">03</div>
+        <div>
+          <h4>Rosnąca własna baza rynkowa</h4>
+          <p>Z każdą analizą i każdą transakcją baza danych rośnie — więcej punktów odniesienia, więcej trendów lokalnych, coraz trafniejsze porównania. Nie nowy model za każdym razem, tylko coraz szersza wiedza, na której model wnioskuje.</p>
+        </div>
+      </div>
+      <div class="source-row">
+        <div class="source-icon">04</div>
+        <div>
+          <h4>Kontekst i opis oferty, nie tylko liczby</h4>
+          <p>Asystent czyta opis, cechy i stan nieruchomości, żeby wytłumaczyć różnice między ofertami — dlaczego jedna jest okazją, a druga tylko wygląda tanio.</p>
+        </div>
+      </div>
+      <div class="ai-footnote"><span class="m">i</span>Efekt: im więcej agencji korzysta z DealBase CRM i im więcej inwestorów z Radaru, tym szersza wspólna baza rynkowa dla wszystkich — przewaga, której nie da się skopiować bez obu produktów naraz.</div>
     </div>
   </div>
 </section>
@@ -457,5 +515,3 @@
 
 </body>
 </html>
-<!-- rebuild trigger -->
-<!-- retry 1783072456 -->
