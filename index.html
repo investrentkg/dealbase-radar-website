@@ -161,6 +161,15 @@
   .sms-bubble{background:var(--blue); color:#fff; border-radius:16px 16px 4px 16px; padding:12px 14px; font-size:13px; max-width:220px; margin-left:auto;}
   .sms-label{font-size:11px; color:var(--ink-soft); text-align:right; margin-bottom:6px;}
 
+  /* alerts section */
+  .alerts-strip{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-top:20px;}
+  .alert-chan{border:0.5px solid var(--line); border-radius:14px; padding:24px; background:#fff; text-align:center;}
+  .alert-chan .ic{width:44px; height:44px; border-radius:12px; background:var(--blue-tint); color:var(--blue); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:18px;}
+  .alert-chan h4{font-family:'Fraunces', serif; font-size:17px; font-weight:500; margin-bottom:6px;}
+  .alert-chan p{font-size:13px; color:var(--ink-soft);}
+  .alert-speed{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:28px; font-size:14px; color:var(--ink-soft);}
+  .alert-speed .pulse2{width:8px; height:8px; border-radius:50%; background:var(--blue); flex-shrink:0; animation:blip 2s ease-in-out infinite;}
+
   /* app preview */
   .app-shell{border:0.5px solid var(--line); border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 24px 60px -30px rgba(33,32,28,0.25);}
   .app-topbar{display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:0.5px solid var(--line); background:var(--cream-2);}
@@ -255,6 +264,7 @@
     </a>
     <nav>
       <ul>
+        <li><a href="#alerty">Alerty</a></li>
         <li><a href="#modul">Moduły</a></li>
         <li><a href="#asystent-ai">Asystent AI</a></li>
         <li><a href="#w-akcji">Zobacz w akcji</a></li>
@@ -316,6 +326,34 @@
     <div class="stat"><b>0</b><span>agencji pośredniczących między Tobą a danymi</span></div>
   </div>
 </div>
+
+<section id="alerty" style="background:var(--cream-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Zero opóźnień</span>
+      <h2>Dowiadujesz się pierwszy, nie ostatni</h2>
+      <p>Nowa okazja albo spadek ceny w obserwowanej ofercie — informacja idzie do Ciebie natychmiast, tym kanałem, który wybierzesz. Nie trzeba samemu odświeżać portali.</p>
+    </div>
+    <div class="alerts-strip">
+      <div class="alert-chan">
+        <div class="ic">✉</div>
+        <h4>E-mail</h4>
+        <p>Codzienne albo natychmiastowe podsumowanie nowych dopasowań, do wyboru.</p>
+      </div>
+      <div class="alert-chan">
+        <div class="ic">◐</div>
+        <h4>SMS</h4>
+        <p>Krótka wiadomość, gdy trafi się coś naprawdę wysoko ocenionego.</p>
+      </div>
+      <div class="alert-chan">
+        <div class="ic">▲</div>
+        <h4>Powiadomienie push</h4>
+        <p>Z aplikacji mobilnej — reagujesz jednym tapnięciem, zanim zrobi to ktoś inny.</p>
+      </div>
+    </div>
+    <div class="alert-speed"><span class="pulse2"></span>Od pojawienia się oferty na portalu do powiadomienia u Ciebie — liczy się minutami, nie godzinami.</div>
+  </div>
+</section>
 
 <section id="modul">
   <div class="wrap">
