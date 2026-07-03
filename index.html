@@ -109,6 +109,18 @@
   .module-card li:first-child{border-top:none;}
   .module-card li::before{content:"→"; color:var(--blue); flex-shrink:0;}
 
+  /* fit section */
+  .fit-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .fit-card{border-radius:14px; padding:26px;}
+  .fit-yes{background:var(--blue-tint);}
+  .fit-no{background:var(--cream-2);}
+  .fit-card h4{font-family:'Fraunces', serif; font-size:17px; font-weight:500; margin-bottom:14px;}
+  .fit-card ul{list-style:none; font-size:14px;}
+  .fit-card li{padding:6px 0; display:flex; gap:8px;}
+  .fit-yes li::before{content:"✓"; color:var(--blue); flex-shrink:0;}
+  .fit-no li::before{content:"—"; color:var(--ink-soft); flex-shrink:0;}
+  .fit-no li{color:var(--ink-soft);}
+
   /* pricing */
   .pricing-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
   .price-card{border:0.5px solid var(--line); border-radius:16px; padding:30px 26px; background:#fff;}
@@ -279,14 +291,33 @@
   footer{border-top:0.5px solid var(--line); padding:32px 0; font-size:13px; color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center;}
 
   @media(max-width:860px){
-    .hero-grid, .modules, .adv-grid, .stats-row, .score-panel{grid-template-columns:1fr;}
-    h1{font-size:38px;}
+    .hero-grid, .modules, .adv-grid, .stats-row, .score-panel, .roadmap-grid, .pricing-grid, .alerts-strip, .ai-grid, .detail-grid{grid-template-columns:1fr;}
+    .app-body{grid-template-columns:1fr !important;}
+    .app-sidebar{display:none;}
+    h1{font-size:32px;}
+    h2{font-size:26px;}
     nav ul{display:none;}
     .eco-diagram{flex-direction:column;}
     .eco-line{width:1px; height:40px;}
+    .wrap{padding:0 20px;}
+    .offer-row{grid-template-columns:auto 1fr; row-gap:8px;}
+    .offer-spark, .offer-source, .auction-tag{display:none;}
+    .cta-section{margin:0 16px 60px; padding:40px 24px;}
+    .price-card.highlight{margin-top:14px;}
   }
 </style>
 </head>
+<!-- ANALYTICS: gotowe do włączenia. Załóż darmową usługę Google Analytics 4 (analytics.google.com, 2 minuty),
+     skopiuj swój Measurement ID (format G-XXXXXXXXXX) i podaj mi go — wtedy odkomentuję i wpiszę poniżej. -->
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+-->
 <body>
 
 <header>
@@ -312,6 +343,7 @@
         <li><a href="#score">Deal Score</a></li>
         <li><a href="#roadmap">Co dalej</a></li>
         <li><a href="#alerty">Alerty</a></li>
+        <li><a href="#dla-kogo">Dla kogo</a></li>
         <li><a href="#cennik">Cennik</a></li>
         <li><a href="#ekosystem">Ekosystem</a></li>
       </ul>
@@ -770,6 +802,34 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
       <div class="eco-node center"><div class="t">Wspólna baza rynkowa</div><div class="s">transakcje i oferty, bez danych wrażliwych</div></div>
       <div class="eco-line"></div>
       <div class="eco-node"><div class="t">DealBase Radar</div><div class="s">dla inwestorów indywidualnych</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="dla-kogo" style="background:var(--cream-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Czy to dla Ciebie</span>
+      <h2>Narzędzie dla inwestorów, nie dla każdego kupującego</h2>
+    </div>
+    <div class="fit-grid">
+      <div class="fit-card fit-yes">
+        <h4>Dla Ciebie, jeśli:</h4>
+        <ul>
+          <li>Kupujesz nieruchomości regularnie, nie raz na kilka lat</li>
+          <li>Liczysz się z konkurencją innych kupujących na dobre oferty</li>
+          <li>Chcesz decyzję opartą na danych, nie na przeczuciu</li>
+          <li>Interesują Cię też okazje spoza portali — licytacje, udziały</li>
+        </ul>
+      </div>
+      <div class="fit-card fit-no">
+        <h4>Niekoniecznie, jeśli:</h4>
+        <ul>
+          <li>Szukasz jednego mieszkania dla siebie, bez pośpiechu</li>
+          <li>Wolisz przeglądać oferty ręcznie, bez alertów i ocen</li>
+          <li>Prowadzisz biuro nieruchomości — to jest DealBase CRM, nie Radar</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
