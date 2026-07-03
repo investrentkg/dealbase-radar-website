@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DealBase Radar — namierzaj okazje inwestycyjne</title>
+<title>DealBase Radar — namierzaj okazje inwestycyjne na rynku nieruchomości</title>
+<meta name="description" content="Asystent AI, który przeszukuje wszystkie polskie portale ogłoszeniowe naraz i ocenia każdą ofertę na tle realnych cen transakcyjnych. Zamknięta beta dla inwestorów.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DealBase Radar — namierzaj okazje inwestycyjne">
+<meta property="og:description" content="AI zakotwiczone w realnych danych: rejestry transakcji, oferty z kluczowych portali i licytacje komornicze w jednym miejscu.">
+<meta property="og:image" content="https://investrentkg.github.io/dealbase-radar-website/og-image.png">
+<meta property="og:url" content="https://investrentkg.github.io/dealbase-radar-website/">
+<meta property="og:locale" content="pl_PL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DealBase Radar — namierzaj okazje inwestycyjne">
+<meta name="twitter:description" content="Asystent AI oceniający oferty nieruchomości na tle realnych cen transakcyjnych.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='24' fill='%23faf9f6'/%3E%3Ccircle cx='60' cy='60' r='14' fill='none' stroke='%23185FA5' stroke-width='8'/%3E%3Ccircle cx='60' cy='60' r='30' fill='none' stroke='%23378ADD' stroke-width='7' opacity='0.6'/%3E%3Ccircle cx='60' cy='60' r='46' fill='none' stroke='%23378ADD' stroke-width='7' opacity='0.3'/%3E%3Ccircle cx='60' cy='60' r='6' fill='%23185FA5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -97,6 +108,21 @@
   .module-card li{padding:7px 0; border-top:0.5px solid var(--line); display:flex; gap:10px;}
   .module-card li:first-child{border-top:none;}
   .module-card li::before{content:"→"; color:var(--blue); flex-shrink:0;}
+
+  /* pricing */
+  .pricing-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .price-card{border:0.5px solid var(--line); border-radius:16px; padding:30px 26px; background:#fff;}
+  .price-card.highlight{border:1.5px solid var(--blue); position:relative; box-shadow:0 20px 40px -24px rgba(24,95,165,0.3);}
+  .price-card .plan-badge{position:absolute; top:-11px; left:26px; background:var(--blue); color:#fff; font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px;}
+  .price-card h4{font-family:'Fraunces', serif; font-size:19px; font-weight:500; margin-bottom:10px;}
+  .price-card .amount{font-family:'IBM Plex Mono', monospace; font-size:32px; font-weight:500; margin-bottom:4px;}
+  .price-card .amount span{font-size:14px; color:var(--ink-soft); font-weight:400; font-family:'Inter', sans-serif;}
+  .price-card .trial{font-size:12px; color:var(--blue); margin-bottom:20px;}
+  .price-card ul{list-style:none; font-size:13px; color:var(--ink-soft);}
+  .price-card li{padding:7px 0; border-top:0.5px solid var(--line); display:flex; gap:8px;}
+  .price-card li:first-child{border-top:none;}
+  .price-card li::before{content:"✓"; color:var(--blue); flex-shrink:0;}
+  .pricing-note{text-align:center; font-size:13px; color:var(--ink-soft); margin-top:24px;}
 
   /* roadmap */
   .roadmap-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
@@ -286,6 +312,7 @@
         <li><a href="#score">Deal Score</a></li>
         <li><a href="#roadmap">Co dalej</a></li>
         <li><a href="#alerty">Alerty</a></li>
+        <li><a href="#cennik">Cennik</a></li>
         <li><a href="#ekosystem">Ekosystem</a></li>
       </ul>
     </nav>
@@ -296,7 +323,7 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow"><span class="dot"></span>Zamknięta beta — dla inwestorów, nie dla biur</div>
+      <div class="eyebrow"><span class="dot"></span>Pierwszych 50 inwestorów — zamknięta beta</div>
       <h1>Rynek nieruchomości<br>ma szum. <em>My namierzamy<br>sygnał.</em></h1>
       <p class="lead">Asystent AI ocenia każdą ofertę na tle realnych cen transakcyjnych, aktualnych ofert z 7 portali i rosnącej własnej bazy rynkowej — nie zgaduje, tylko liczy na twardych danych.</p>
       <div class="hero-ctas">
@@ -747,9 +774,55 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   </div>
 </section>
 
+<section id="cennik">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Cennik</span>
+      <h2>Bez amerykańskich cen za amerykańskie narzędzia</h2>
+      <p>Podobne narzędzia inwestorskie na Zachodzie kosztują równowartość 200–600 zł miesięcznie. Budujemy to znacznie taniej — i zaczynasz z 30 dniami za darmo.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h4>Podstawowy</h4>
+        <div class="amount">49 zł<span>/mies.</span></div>
+        <div class="trial">30 dni za darmo</div>
+        <ul>
+          <li>Agregator ze wszystkich portali</li>
+          <li>Deal Score z uzasadnieniem</li>
+          <li>Alerty e-mail</li>
+        </ul>
+      </div>
+      <div class="price-card highlight">
+        <span class="plan-badge">Najczęściej wybierany</span>
+        <h4>Pro</h4>
+        <div class="amount">99 zł<span>/mies.</span></div>
+        <div class="trial">30 dni za darmo</div>
+        <ul>
+          <li>Wszystko z planu Podstawowego</li>
+          <li>Powiadomienia SMS i push</li>
+          <li>Licytacje komornicze i udziały</li>
+          <li>Portfolio wielu nieruchomości</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <h4>VIP</h4>
+        <div class="amount">199 zł<span>/mies.</span></div>
+        <div class="trial">30 dni za darmo</div>
+        <ul>
+          <li>Wszystko z planu Pro</li>
+          <li>Priorytetowa kolejka powiadomień</li>
+          <li>Wyszukiwanie głosowe i czatowe</li>
+          <li>Zweryfikowane oględziny na miejscu</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pricing-note">Polecasz znajomemu inwestorowi — obaj zyskujecie miesiąc gratis. Szczegóły programu poleceń po dołączeniu do bety.</div>
+  </div>
+</section>
+
 <section id="kontakt" style="padding-bottom:0;">
   <div class="cta-section">
-    <h2>Zamknięta beta rusza wkrótce</h2>
+    <h2>Pierwszych 50 miejsc w zamkniętej becie</h2>
     <p>Na start dopuszczamy wąskie grono inwestorów, żeby dopracować ocenę ofert zanim otworzymy szerzej.</p>
     <a href="mailto:zarzad@investrent.com.pl?subject=DealBase%20Radar%20-%20beta" class="btn btn-primary">Poproś o dostęp do bety →</a>
   </div>
