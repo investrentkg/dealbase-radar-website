@@ -120,6 +120,47 @@
   .ai-footnote{margin-top:26px; padding-top:20px; border-top:0.5px solid #2c2a25; font-size:13px; color:#7a7768; display:flex; gap:10px;}
   .ai-footnote .m{color:var(--blue-light); flex-shrink:0;}
 
+  /* tabs */
+  .tabs{display:flex; gap:4px; margin-bottom:0; border-bottom:0.5px solid var(--line); padding:0 26px;}
+  .tab-btn{padding:14px 4px; margin-right:24px; font-size:14px; color:var(--ink-soft); border-bottom:2px solid transparent; cursor:pointer; background:none; border-top:none; border-left:none; border-right:none; font-family:'Inter', sans-serif;}
+  .tab-btn.active{color:var(--ink); font-weight:500; border-bottom-color:var(--blue);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* offer detail (analysis tab) */
+  .detail-grid{display:grid; grid-template-columns:0.8fr 1.2fr; gap:0;}
+  .detail-left{padding:24px 26px; border-right:0.5px solid var(--line);}
+  .detail-score-big{display:flex; align-items:baseline; gap:10px; margin-bottom:4px;}
+  .detail-score-big .num{font-family:'IBM Plex Mono', monospace; font-size:48px; font-weight:500; color:var(--blue);}
+  .detail-score-big .lbl{font-size:13px; color:var(--ink-soft);}
+  .detail-title{font-family:'Fraunces', serif; font-size:19px; margin:14px 0 4px;}
+  .detail-meta{font-size:13px; color:var(--ink-soft); margin-bottom:20px;}
+  .detail-metric{display:flex; justify-content:space-between; padding:10px 0; border-top:0.5px solid var(--line); font-size:13px;}
+  .detail-metric:first-of-type{border-top:none;}
+  .detail-metric .v{font-family:'IBM Plex Mono', monospace; color:var(--ink);}
+  .rent-box{margin-top:18px; padding:14px; border-radius:10px; background:var(--blue-tint);}
+  .rent-box .rv{font-family:'IBM Plex Mono', monospace; font-size:20px; color:var(--blue); font-weight:500;}
+  .rent-box .rl{font-size:12px; color:var(--ink-soft);}
+  .detail-right{padding:24px 26px;}
+  .trend-chart-label{font-size:12px; color:var(--ink-soft); margin-bottom:10px; display:flex; justify-content:space-between;}
+  .comps-title{font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; margin:22px 0 10px;}
+  .comp-row{display:grid; grid-template-columns:1fr auto auto; gap:14px; padding:10px 0; border-top:0.5px solid var(--line); font-size:13px; align-items:center;}
+  .comp-row:first-of-type{border-top:none;}
+  .comp-sim{font-size:11px; padding:3px 8px; border-radius:10px; background:var(--cream-2); color:var(--ink-soft);}
+
+  /* notifications tab */
+  .notif-panel{padding:36px 26px; display:flex; gap:40px; justify-content:center; flex-wrap:wrap;}
+  .phone-mock{width:220px;}
+  .push-bubble{background:#fff; border:0.5px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 10px 30px -12px rgba(33,32,28,0.2); margin-bottom:12px;}
+  .push-top{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .push-top .ic{width:20px; height:20px; border-radius:6px; background:var(--blue); flex-shrink:0;}
+  .push-top .app{font-size:11px; color:var(--ink-soft); font-weight:500;}
+  .push-top .time{font-size:11px; color:var(--ink-soft); margin-left:auto;}
+  .push-title{font-size:13px; font-weight:500; margin-bottom:2px;}
+  .push-body{font-size:12px; color:var(--ink-soft);}
+  .sms-bubble{background:var(--blue); color:#fff; border-radius:16px 16px 4px 16px; padding:12px 14px; font-size:13px; max-width:220px; margin-left:auto;}
+  .sms-label{font-size:11px; color:var(--ink-soft); text-align:right; margin-bottom:6px;}
+
   /* app preview */
   .app-shell{border:0.5px solid var(--line); border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 24px 60px -30px rgba(33,32,28,0.25);}
   .app-topbar{display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:0.5px solid var(--line); background:var(--cream-2);}
@@ -362,72 +403,146 @@
         <div class="search">Kołobrzeg · mieszkanie · 2–3 pokoje · do 750 000 zł</div>
         <div style="width:60px;"></div>
       </div>
-      <div class="app-body">
-        <div class="app-sidebar">
-          <div class="item active"><span class="dotcol"></span>Wyszukiwarka</div>
-          <div class="item"><span class="dotcol"></span>Obserwowane</div>
-          <div class="item"><span class="dotcol"></span>Alerty</div>
-          <div class="item"><span class="dotcol"></span>Trend rynku</div>
-          <div class="item"><span class="dotcol"></span>Ustawienia</div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-search">Wyniki wyszukiwania</button>
+        <button class="tab-btn" data-tab="tab-analysis">Analiza oferty</button>
+        <button class="tab-btn" data-tab="tab-notif">Powiadomienia</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-search">
+        <div class="app-body" style="grid-template-columns:200px 1fr;">
+          <div class="app-sidebar">
+            <div class="item active"><span class="dotcol"></span>Wyszukiwarka</div>
+            <div class="item"><span class="dotcol"></span>Obserwowane</div>
+            <div class="item"><span class="dotcol"></span>Alerty</div>
+            <div class="item"><span class="dotcol"></span>Trend rynku</div>
+            <div class="item"><span class="dotcol"></span>Ustawienia</div>
+          </div>
+          <div class="app-main">
+            <div class="app-filters">
+              <span class="filter-chip on">Wszystkie portale · 7</span>
+              <span class="filter-chip">Deal Score 70+</span>
+              <span class="filter-chip">Spadek ceny</span>
+              <span class="filter-chip">Nowe dziś</span>
+            </div>
+
+            <div class="offer-row">
+              <div class="score-badge score-high">91</div>
+              <div class="offer-info">
+                <div class="title">Mieszkanie 3-pok, Lechitów · 61 m²</div>
+                <div class="meta">450 m od plaży · piętro 2/4 · rynek wtórny</div>
+              </div>
+              <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,8 16,10 32,14 48,12 64,18" fill="none" stroke="#639922" stroke-width="2"/></svg>
+              <span class="offer-source">Otodom</span>
+              <div class="offer-price">598 000 zł<span class="per">9 800 zł/m²</span></div>
+            </div>
+
+            <div class="offer-row">
+              <div class="score-badge score-high">87</div>
+              <div class="offer-info">
+                <div class="title">Mieszkanie 2-pok, Podczele · 48 m²</div>
+                <div class="meta">1,1 km do centrum · piętro 1/3 · rynek wtórny</div>
+              </div>
+              <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,6 16,9 32,8 48,13 64,15" fill="none" stroke="#639922" stroke-width="2"/></svg>
+              <span class="offer-source">OLX</span>
+              <div class="offer-price">465 000 zł<span class="per">9 690 zł/m²</span></div>
+            </div>
+
+            <div class="offer-row">
+              <div class="score-badge score-mid">68</div>
+              <div class="offer-info">
+                <div class="title">Mieszkanie 3-pok, Radzikowo · 72 m²</div>
+                <div class="meta">4,2 km do centrum · piętro 3/3 · rynek pierwotny</div>
+              </div>
+              <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,14 16,13 32,15 48,11 64,10" fill="none" stroke="#185FA5" stroke-width="2"/></svg>
+              <span class="offer-source">Nier.-online</span>
+              <div class="offer-price">740 000 zł<span class="per">10 280 zł/m²</span></div>
+            </div>
+
+            <div class="offer-row">
+              <div class="score-badge score-mid">61</div>
+              <div class="offer-info">
+                <div class="title">Mieszkanie 2-pok, Podczele · 51 m²</div>
+                <div class="meta">900 m do plaży · piętro 4/4 · rynek wtórny</div>
+              </div>
+              <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,10 16,11 32,9 48,10 64,9" fill="none" stroke="#185FA5" stroke-width="2"/></svg>
+              <span class="offer-source">Gratka</span>
+              <div class="offer-price">512 000 zł<span class="per">10 040 zł/m²</span></div>
+            </div>
+
+            <div class="app-preview-note"><span class="pulse"></span>127 nowych ofert dziś · ranking odświeżony 4 minuty temu</div>
+          </div>
         </div>
-        <div class="app-main">
-          <div class="app-filters">
-            <span class="filter-chip on">Wszystkie portale · 7</span>
-            <span class="filter-chip">Deal Score 70+</span>
-            <span class="filter-chip">Spadek ceny</span>
-            <span class="filter-chip">Nowe dziś</span>
-          </div>
+      </div>
 
-          <div class="offer-row">
-            <div class="score-badge score-high">91</div>
-            <div class="offer-info">
-              <div class="title">Mieszkanie 3-pok, Lechitów · 61 m²</div>
-              <div class="meta">450 m od plaży · piętro 2/4 · rynek wtórny</div>
+      <div class="tab-panel" id="tab-analysis">
+        <div class="detail-grid">
+          <div class="detail-left">
+            <div class="detail-score-big"><span class="num">91</span><span class="lbl">/ 100 Deal Score</span></div>
+            <div class="detail-title">Mieszkanie 3-pok, Lechitów</div>
+            <div class="detail-meta">61 m² · 450 m od plaży · piętro 2/4</div>
+
+            <div class="detail-metric"><span>Cena oferty</span><span class="v">598 000 zł</span></div>
+            <div class="detail-metric"><span>Cena / m²</span><span class="v">9 800 zł</span></div>
+            <div class="detail-metric"><span>Rejestr transakcji (śr.)</span><span class="v">10 650 zł/m²</span></div>
+            <div class="detail-metric"><span>Oferty porównawcze (śr.)</span><span class="v">10 890 zł/m²</span></div>
+            <div class="detail-metric"><span>Margines negocjacyjny</span><span class="v">~6–8%</span></div>
+
+            <div class="rent-box">
+              <div class="rv">2 650 zł / mies.</div>
+              <div class="rl">szacowany czynsz najmu · ~5,3% rentowności brutto</div>
             </div>
-            <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,8 16,10 32,14 48,12 64,18" fill="none" stroke="#639922" stroke-width="2"/></svg>
-            <span class="offer-source">Otodom</span>
-            <div class="offer-price">598 000 zł<span class="per">9 800 zł/m²</span></div>
           </div>
+          <div class="detail-right">
+            <div class="trend-chart-label"><span>Cena / m² w okolicy — 24 mies.</span><span>Lechitów, Kołobrzeg</span></div>
+            <svg width="100%" height="120" viewBox="0 0 400 120">
+              <polyline points="0,90 40,85 80,80 120,82 160,70 200,65 240,55 280,50 320,38 360,30 400,25" fill="none" stroke="#185FA5" stroke-width="2.5"/>
+              <circle cx="400" cy="25" r="4" fill="#185FA5"/>
+              <line x1="0" y1="110" x2="400" y2="110" stroke="#e4e1d8" stroke-width="1"/>
+            </svg>
 
-          <div class="offer-row">
-            <div class="score-badge score-high">87</div>
-            <div class="offer-info">
-              <div class="title">Mieszkanie 2-pok, Podczele · 48 m²</div>
-              <div class="meta">1,1 km do centrum · piętro 1/3 · rynek wtórny</div>
+            <div class="comps-title">Podobne transakcje w okolicy</div>
+            <div class="comp-row"><span>Lechitów, 58 m², 2/5</span><span class="comp-sim">93% dopasowania</span><span class="v" style="font-family:'IBM Plex Mono', monospace;">642 000 zł</span></div>
+            <div class="comp-row"><span>Lechitów, 64 m², 3/4</span><span class="comp-sim">88% dopasowania</span><span class="v" style="font-family:'IBM Plex Mono', monospace;">675 000 zł</span></div>
+            <div class="comp-row"><span>Podczele, 60 m², 1/3</span><span class="comp-sim">81% dopasowania</span><span class="v" style="font-family:'IBM Plex Mono', monospace;">618 000 zł</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-notif">
+        <div class="notif-panel">
+          <div class="phone-mock">
+            <div class="push-bubble">
+              <div class="push-top"><span class="ic"></span><span class="app">DealBase Radar</span><span class="time">teraz</span></div>
+              <div class="push-title">Nowa oferta z wysokim Deal Score</div>
+              <div class="push-body">Lechitów · 61 m² · Score 91 — 598 000 zł, 8% poniżej wartości rynkowej okolicy.</div>
             </div>
-            <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,6 16,9 32,8 48,13 64,15" fill="none" stroke="#639922" stroke-width="2"/></svg>
-            <span class="offer-source">OLX</span>
-            <div class="offer-price">465 000 zł<span class="per">9 690 zł/m²</span></div>
-          </div>
-
-          <div class="offer-row">
-            <div class="score-badge score-mid">68</div>
-            <div class="offer-info">
-              <div class="title">Mieszkanie 3-pok, Radzikowo · 72 m²</div>
-              <div class="meta">4,2 km do centrum · piętro 3/3 · rynek pierwotny</div>
+            <div class="push-bubble">
+              <div class="push-top"><span class="ic"></span><span class="app">DealBase Radar</span><span class="time">2 godz.</span></div>
+              <div class="push-title">Spadek ceny w obserwowanych</div>
+              <div class="push-body">Podczele 48 m² potaniało o 15 000 zł — sprawdź, czy nadal aktualne.</div>
             </div>
-            <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,14 16,13 32,15 48,11 64,10" fill="none" stroke="#185FA5" stroke-width="2"/></svg>
-            <span class="offer-source">Nier.-online</span>
-            <div class="offer-price">740 000 zł<span class="per">10 280 zł/m²</span></div>
           </div>
-
-          <div class="offer-row">
-            <div class="score-badge score-mid">61</div>
-            <div class="offer-info">
-              <div class="title">Mieszkanie 2-pok, Podczele · 51 m²</div>
-              <div class="meta">900 m do plaży · piętro 4/4 · rynek wtórny</div>
-            </div>
-            <svg class="offer-spark" viewBox="0 0 64 24"><polyline points="0,10 16,11 32,9 48,10 64,9" fill="none" stroke="#185FA5" stroke-width="2"/></svg>
-            <span class="offer-source">Gratka</span>
-            <div class="offer-price">512 000 zł<span class="per">10 040 zł/m²</span></div>
+          <div class="phone-mock">
+            <div class="sms-label">SMS · DealBase Radar</div>
+            <div class="sms-bubble">Nowa okazja: Lechitów, 61m², Score 91, 598 000 zł. Szczegóły: dealbase.pl/r/8x2f</div>
           </div>
-
-          <div class="app-preview-note"><span class="pulse"></span>127 nowych ofert dziś · ranking odświeżony 4 minuty temu</div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+</script>
 
 <section id="score" style="background:var(--cream-2);">
   <div class="wrap">
