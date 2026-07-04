@@ -1,6 +1,7 @@
 import { Router, Response } from 'express'
 import { AuthRequest, requireAuth, requirePlan } from '../middleware/auth'
 import { radarDb } from '../db/clients'
+import { sendSms, isSmsConfigured } from '../lib/smsGateway'
 
 export const alertsRouter = Router()
 
@@ -57,6 +58,26 @@ alertsRouter.get('/history', requireAuth, async (req: AuthRequest, res: Response
 
   if (error) return res.status(500).json({ error: error.message })
   res.json(data)
+})
+
+// ── POST /api/alerts/test-sms (wymaga planu Pro+) ─────────────────────
+// Do reczne testowania integracji SMSAPI po podpieciu tokena - bez tego
+// nie da sie sprawdzic dzialania inaczej niz przez realny alert.
+alertsRouter.post('/test-sms', requireAuth, requirePlan('pro'), async (req: AuthRequest, res: Response) => {
+  if (!isSmsConfigured()) {
+    return res.status(501).json({ error: 'SMS_API_TOKEN nieskonfigurowany' })
+  }
+  const { phone } = req.body
+  if (!phone) return res.status(400).json({ error: 'phone jest wymagane' })
+
+  const result = await sendSms({
+    to: phone,
+    message: 'DealBase Radar: test powiadomienia SMS. Jesli to czytasz, integracja dziala poprawnie.',
+    senderName: 'DealBase',
+  })
+
+  if (!result.sent) return res.status(502).json({ error: result.reason })
+  res.json({ sent: true, messageId: result.messageId })
 })
 
 // ── Notatka projektowa dla kolejnej sesji ─────────────────────────────
