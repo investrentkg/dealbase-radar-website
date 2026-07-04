@@ -1,35 +1,70 @@
 import { Router, Response } from 'express'
 import { AuthRequest, requireAuth, requirePlan } from '../middleware/auth'
+import { radarDb } from '../db/clients'
 
 export const alertsRouter = Router()
 
 // ── GET /api/alerts/preferences ───────────────────────────────────────
 alertsRouter.get('/preferences', requireAuth, async (req: AuthRequest, res: Response) => {
-  res.status(501).json({ error: 'Preferencje alertow nieaktywne - czeka na baze Supabase Radaru' })
+  const { data, error } = await radarDb
+    .from('notification_preferences')
+    .select('*')
+    .eq('user_id', req.user!.id)
+    .maybeSingle()
+
+  if (error) return res.status(500).json({ error: error.message })
+  if (!data) return res.status(404).json({ error: 'Brak preferencji - powinny powstac przy rejestracji' })
+  res.json(data)
 })
 
 // ── PUT /api/alerts/preferences ───────────────────────────────────────
-// email: wszystkie plany. SMS + push: plan Pro i wyzej (patrz cennik na stronie).
+// email: wszystkie plany. SMS + push: plan Pro i wyzej (patrz cennik).
 alertsRouter.put('/preferences', requireAuth, async (req: AuthRequest, res: Response) => {
   const { email_enabled, sms_enabled, push_enabled, frequency } = req.body
-  res.status(501).json({
-    error: 'Preferencje alertow nieaktywne - czeka na baze Supabase Radaru',
-    received: { email_enabled, sms_enabled, push_enabled, frequency },
-  })
+
+  if ((sms_enabled || push_enabled) && req.user!.plan === 'basic') {
+    return res.status(403).json({
+      error: 'SMS i powiadomienia push wymagaja planu Pro lub wyzszego',
+      current_plan: req.user!.plan,
+    })
+  }
+
+  const { data, error } = await radarDb
+    .from('notification_preferences')
+    .update({
+      ...(email_enabled !== undefined && { email_enabled }),
+      ...(sms_enabled !== undefined && { sms_enabled }),
+      ...(push_enabled !== undefined && { push_enabled }),
+      ...(frequency !== undefined && { frequency }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', req.user!.id)
+    .select()
+    .single()
+
+  if (error) return res.status(500).json({ error: error.message })
+  res.json(data)
 })
 
-// ── PUT /api/alerts/preferences/sms (wymaga planu Pro+) ───────────────
-alertsRouter.put('/preferences/sms', requireAuth, requirePlan('pro'), async (req: AuthRequest, res: Response) => {
-  res.status(501).json({ error: 'SMS nieaktywne - czeka na integracje z bramka SMS + baze Supabase Radaru' })
+// ── GET /api/alerts/history ───────────────────────────────────────────
+alertsRouter.get('/history', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { data, error } = await radarDb
+    .from('alerts_log')
+    .select('*')
+    .eq('user_id', req.user!.id)
+    .order('sent_at', { ascending: false })
+    .limit(50)
+
+  if (error) return res.status(500).json({ error: error.message })
+  res.json(data)
 })
 
 // ── Notatka projektowa dla kolejnej sesji ─────────────────────────────
-// Kanaly dostawy (do zaimplementowania osobno, kazdy jako wlasny modul
-// w lib/notifications/):
-//   - email: Resend albo SMTP (do ustalenia z istniejaca infrastruktura)
-//   - sms: bramka SMS (do wyboru - SMSAPI.pl / Twilio - porownac ceny)
-//   - push: Web Push API (VAPID keys) dla PWA + FCM gdy powstanie
-//     natywna aplikacja mobilna (patrz roadmapa: "aplikacja mobilna z
-//     powiadomieniami push")
-// Kolejnosc dostarczania dla planu VIP: priorytetowa kolejka = ich
-// zadania trafiaja do kolejki przetwarzania PRZED userami basic/pro.
+// Faktyczne WYSYLANIE alertow (email/sms/push) to osobny watek - potrzebuje:
+//   - email: Resend albo SMTP
+//   - sms: bramka SMS (SMSAPI.pl / Twilio - do wyboru)
+//   - push: Web Push API (VAPID keys) + docelowo FCM dla apki mobilnej
+// Ten plik obsluguje tylko PREFERENCJE i HISTORIE, nie sam mechanizm
+// wysylki - to wymaga osobnego "workera" ktory cyklicznie sprawdza
+// watchlisty (lib/notifications/ - do zbudowania w kolejnej sesji razem
+// z modulem search/Apify).
