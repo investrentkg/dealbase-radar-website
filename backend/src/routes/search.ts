@@ -35,6 +35,7 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   if (!params.city) {
     return res.status(400).json({ error: 'city jest wymagane' })
   }
+  const city: string = params.city
 
   const portalNames: string[] | undefined = Array.isArray(req.body.portals) ? req.body.portals : undefined
   const results = await searchAllPortals(params, portalNames)
@@ -58,36 +59,75 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     ? pricesPerM2.reduce((a, b) => a + b, 0) / pricesPerM2.length
     : null
 
-  // ── Punkt 1: RCN / Cenogram ─────────────────────────────────────────
-  // Jedno zapytanie per wyszukiwanie (nie per oferta) - RCN dla calego
-  // miasta/dzielnicy jest wystarczajaco reprezentatywne, a oszczedza
-  // kredyty API. Jesli Cenogram nie jest skonfigurowany lub zawiedzie,
-  // po prostu ten punkt odniesienia bedzie null - Deal Score dziala dalej
-  // z tym co ma (patrz dealScoreEngine.ts - usedReferences pokazuje braki).
-  const rcnStats = await getRcnComparables({
-    city: params.city,
-    district: params.district || null,
-    street: null,
-    buildingNumber: null,
-    propertyType: params.property_type || 'mieszkanie',
-    area: (params.area_min && params.area_max) ? (params.area_min + params.area_max) / 2 : 50,
-    marketType: null,
-  }).catch(err => {
-    console.error('[search] Blad Cenogram/RCN:', err.message)
-    return null
-  })
+  // ── Punkt 1: RCN / Cenogram — per grupa (dzielnica + typ rynku) ──────
+  // Wczesniejsza wersja pytala RCN raz dla calego miasta, co dawalo
+  // mylaco wysoka mediane w miastach z mieszanka drogich apartamentow
+  // kurortowych i zwyklego rynku wtornego (np. Kolobrzeg: mediana
+  // miejska 29 968 zl/m2 vs srednia aktywnych ofert 12 780 zl/m2).
+  // Teraz grupujemy oferty po (dzielnica lub miasto, typ rynku) i pytamy
+  // RCN OSOBNO dla kazdej grupy - dokladniejsze i nadal oszczedne
+  // (deduplikacja: te same parametry = jedno zapytanie, nie jedno na oferte).
+  const rcnGroupKey = (l: PortalListing) =>
+    `${(l.address_district || l.address_city || city).toLowerCase()}|${l.market_type || 'nieznany'}`
 
-  const rcnAvgPricePerM2 = rcnStats?.medianPricePerM2 ?? null
+  const uniqueGroups = new Map<string, { district: string; marketType: string | null }>()
+  for (const l of allListings) {
+    const key = rcnGroupKey(l)
+    if (!uniqueGroups.has(key)) {
+      uniqueGroups.set(key, {
+        district: l.address_district || l.address_city || city,
+        marketType: (l.market_type === 'pierwotny' || l.market_type === 'wtorny') ? l.market_type : null,
+      })
+    }
+  }
+  // Zawsze dolicz tez sama nazwe miasta (bez dzielnicy) jako fallback dla
+  // ofert bez podanej dzielnicy w danych z portalu.
+  const cityFallbackKey = `${city.toLowerCase()}|nieznany`
+  if (!uniqueGroups.has(cityFallbackKey)) {
+    uniqueGroups.set(cityFallbackKey, { district: city, marketType: null })
+  }
+
+  const rcnByGroup = new Map<string, Awaited<ReturnType<typeof getRcnComparables>>>()
+  await Promise.all(
+    Array.from(uniqueGroups.entries()).map(async ([key, group]) => {
+      const stats = await getRcnComparables({
+        city: city,
+        district: group.district !== city ? group.district : null,
+        street: null,
+        buildingNumber: null,
+        propertyType: params.property_type || 'mieszkanie',
+        area: (params.area_min && params.area_max) ? (params.area_min + params.area_max) / 2 : 50,
+        marketType: group.marketType,
+      }).catch(err => {
+        console.error(`[search] Blad Cenogram/RCN dla grupy ${key}:`, err.message)
+        return null
+      })
+      rcnByGroup.set(key, stats)
+    })
+  )
+
+  function rcnForListing(l: PortalListing) {
+    return rcnByGroup.get(rcnGroupKey(l)) ?? rcnByGroup.get(cityFallbackKey) ?? null
+  }
+
+  // Zbiorcza statystyka do sekcji reference_points w odpowiedzi (informacyjnie,
+  // pokazujemy mediane per grupa zamiast jednej zlepionej liczby dla miasta).
+  const rcnSummaryByGroup = Array.from(rcnByGroup.entries()).map(([key, stats]) => ({
+    group: key,
+    median_price_per_m2: stats?.medianPricePerM2 ?? null,
+    sample_size: stats?.count ?? 0,
+  }))
 
   const scoredListings = allListings.map(listing => {
     if (!listing.area || !listing.price) {
       return { ...listing, dealScore: null }
     }
     const offerPricePerM2 = listing.price / listing.area
+    const rcnStats = rcnForListing(listing)
     const score = calculateDealScore({
       offerPricePerM2,
       references: {
-        transactionAvgPricePerM2: rcnAvgPricePerM2,
+        transactionAvgPricePerM2: rcnStats?.medianPricePerM2 ?? null,
         listingsAvgPricePerM2,
         archiveTrendPricePerM2: null,   // TODO: podpiecie market_intel.portal_listings_archive
       },
@@ -108,11 +148,7 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     portals_searched: results.map(r => r.portal),
     errors: errors.length > 0 ? errors : undefined,
     reference_points: {
-      rcn: rcnStats ? {
-        median_price_per_m2: rcnStats.medianPricePerM2,
-        sample_size: rcnStats.count,
-        outliers_excluded: rcnStats.outliersExcluded,
-      } : null,
+      rcn_by_group: rcnSummaryByGroup,
       listings_avg_price_per_m2: listingsAvgPricePerM2,
       archive_trend: null, // TODO
     },
