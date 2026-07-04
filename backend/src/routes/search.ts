@@ -4,6 +4,7 @@ import { searchAllPortals, getPortalsStatus } from '../portals'
 import { PortalSearchParams, PortalListing } from '../portals/types'
 import { calculateDealScore } from '../lib/dealScoreEngine'
 import { getRcnComparables } from '../lib/cenogram'
+import { detectMarketSegment } from '../lib/marketSegment'
 import { marketIntelDb } from '../db/clients'
 
 export const searchRouter = Router()
@@ -43,132 +44,105 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   const allListings: PortalListing[] = results.flatMap(r => r.listings)
   const errors = results.filter(r => r.error).map(r => ({ portal: r.portal, error: r.error }))
 
-  // ── Deal Score dla kazdej oferty ────────────────────────────────────
-  // Na razie tylko punkt 2 (srednia z ofert w tym samym wyszukiwaniu) -
-  // punkt 1 (RCN/rejestr transakcji) i punkt 3 (wlasna baza trendow z
-  // market_intel) do podpiecia w kolejnym kroku, gdy zasilimy archiwum
-  // realnymi danymi historycznymi. Score bez pelnych 3 punktow jest
-  // NADAL zwracany, ale usedReferences pokaze ktorych brakuje - UI
-  // (patrz sekcja "Deal Score" na stronie) musi to jasno komunikowac,
-  // nie udawac ze mamy pelny obraz.
-  const pricesPerM2 = allListings
-    .map(l => (l.area && l.price) ? l.price / l.area : null)
-    .filter((v): v is number => v !== null && v > 0)
+  // ── Segmentacja rynkowa: standard vs premium/kurortowy ───────────────
+  // Kluczowa poprawka po odkryciu na danych z Kolobrzegu: dzielnica z
+  // portalu jest zawodna (czesto null), a "zwykle" i "luksusowe" budynki
+  // stoja czasem przy tej samej ulicy w miastach nadmorskich. Segment
+  // wykrywamy z TRESCI oferty (tytul/opis) - dziala wszedzie w Polsce,
+  // nie tylko w miastach uzdrowiskowych. Patrz lib/marketSegment.ts.
+  const segmentOf = (l: PortalListing) => detectMarketSegment({
+    title: l.title, description: l.description,
+  })
 
-  const listingsAvgPricePerM2 = pricesPerM2.length > 0
-    ? pricesPerM2.reduce((a, b) => a + b, 0) / pricesPerM2.length
-    : null
+  const citiesInResults = new Set(allListings.map(l => (l.address_city || city).toLowerCase()))
+  citiesInResults.add(city.toLowerCase())
 
-  // ── Punkt 1: RCN / Cenogram — per grupa (dzielnica + typ rynku) ──────
-  // Wczesniejsza wersja pytala RCN raz dla calego miasta, co dawalo
-  // mylaco wysoka mediane w miastach z mieszanka drogich apartamentow
-  // kurortowych i zwyklego rynku wtornego (np. Kolobrzeg: mediana
-  // miejska 29 968 zl/m2 vs srednia aktywnych ofert 12 780 zl/m2).
-  // Teraz grupujemy oferty po (dzielnica lub miasto, typ rynku) i pytamy
-  // RCN OSOBNO dla kazdej grupy - dokladniejsze i nadal oszczedne
-  // (deduplikacja: te same parametry = jedno zapytanie, nie jedno na oferte).
-  const rcnGroupKey = (l: PortalListing) =>
-    `${(l.address_district || l.address_city || city).toLowerCase()}|${l.market_type || 'nieznany'}`
-
-  const uniqueGroups = new Map<string, { district: string; marketType: string | null }>()
-  for (const l of allListings) {
-    const key = rcnGroupKey(l)
-    if (!uniqueGroups.has(key)) {
-      uniqueGroups.set(key, {
-        district: l.address_district || l.address_city || city,
-        marketType: (l.market_type === 'pierwotny' || l.market_type === 'wtorny') ? l.market_type : null,
-      })
-    }
-  }
-  // Zawsze dolicz tez sama nazwe miasta (bez dzielnicy) jako fallback dla
-  // ofert bez podanej dzielnicy w danych z portalu.
-  const cityFallbackKey = `${city.toLowerCase()}|nieznany`
-  if (!uniqueGroups.has(cityFallbackKey)) {
-    uniqueGroups.set(cityFallbackKey, { district: city, marketType: null })
-  }
-
-  const rcnByGroup = new Map<string, Awaited<ReturnType<typeof getRcnComparables>>>()
+  // ── Punkt 1: RCN / Cenogram — jedno zapytanie per miasto ─────────────
+  // WAZNE OGRANICZENIE (uczciwie komunikowane w odpowiedzi API): RCN nie
+  // ma pojecia "segment premium" - zwraca mediane dla calego miasta, wiec
+  // dla ofert premium ten punkt odniesienia jest z natury mniej precyzyjny
+  // niz punkty 2 i 3 ponizej, ktore SA segmentowane poprawnie. To lepsze
+  // niz udawac precyzje ktorej nie mamy.
+  const rcnByCity = new Map<string, Awaited<ReturnType<typeof getRcnComparables>>>()
   await Promise.all(
-    Array.from(uniqueGroups.entries()).map(async ([key, group]) => {
+    Array.from(citiesInResults).map(async (c) => {
       const stats = await getRcnComparables({
-        city: city,
-        district: group.district !== city ? group.district : null,
+        city: c,
+        district: null,
         street: null,
         buildingNumber: null,
         propertyType: params.property_type || 'mieszkanie',
         area: (params.area_min && params.area_max) ? (params.area_min + params.area_max) / 2 : 50,
-        marketType: group.marketType,
+        marketType: null,
       }).catch(err => {
-        console.error(`[search] Blad Cenogram/RCN dla grupy ${key}:`, err.message)
+        console.error(`[search] Blad Cenogram/RCN dla ${c}:`, err.message)
         return null
       })
-      rcnByGroup.set(key, stats)
+      rcnByCity.set(c, stats)
     })
   )
-
   function rcnForListing(l: PortalListing) {
-    return rcnByGroup.get(rcnGroupKey(l)) ?? rcnByGroup.get(cityFallbackKey) ?? null
+    return rcnByCity.get((l.address_city || city).toLowerCase()) ?? rcnByCity.get(city.toLowerCase()) ?? null
   }
-
-  // Zbiorcza statystyka do sekcji reference_points w odpowiedzi (informacyjnie,
-  // pokazujemy mediane per grupa zamiast jednej zlepionej liczby dla miasta).
-  const rcnSummaryByGroup = Array.from(rcnByGroup.entries()).map(([key, stats]) => ({
-    group: key,
+  const rcnSummary = Array.from(rcnByCity.entries()).map(([c, stats]) => ({
+    city: c,
     median_price_per_m2: stats?.medianPricePerM2 ?? null,
     sample_size: stats?.count ?? 0,
+    note: 'RCN nie rozroznia segmentu premium/standard - to mediana dla calego miasta',
   }))
 
-  // ── Punkt 3: rosnaca wlasna baza (market_intel.portal_listings_archive) ──
-  // To NIE jest to samo co "listingsAvgPricePerM2" powyzej - tamto liczy
-  // sredni z ofert znalezionych W TYM JEDNYM wyszukiwaniu. To liczy z
-  // WSZYSTKICH ofert zarchiwizowanych historycznie (z wielu wyszukiwan,
-  // wielu userow, w czasie) - to jest ten "coraz madrzejszy asystent"
-  // z ustalen sesji brandingowej: baza rosnie z kazdym uzyciem produktu,
-  // nie trenujemy modelu od nowa, tylko mamy wiecej punktow odniesienia.
-  const archiveTrendByGroup = new Map<string, { avg: number | null; count: number }>()
-  await Promise.all(
-    Array.from(uniqueGroups.values()).map(async (group) => {
-      const key = `${group.district.toLowerCase()}|${group.marketType || 'nieznany'}`
-      if (archiveTrendByGroup.has(key)) return
+  // ── Punkt 2: srednia z BIEZACEGO wyszukiwania, segmentowana ──────────
+  const listingsAvgBySegment = { standard: null as number | null, premium: null as number | null }
+  for (const seg of ['standard', 'premium'] as const) {
+    const prices = allListings
+      .filter(l => segmentOf(l) === seg)
+      .map(l => (l.area && l.price) ? l.price / l.area : null)
+      .filter((v): v is number => v !== null && v > 0)
+    listingsAvgBySegment[seg] = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : null
+  }
 
+  // ── Punkt 3: rosnaca wlasna baza (market_intel), segmentowana ────────
+  // To jest ten "coraz madrzejszy asystent" z ustalen sesji brandingowej -
+  // baza rosnie z kazdym wyszukiwaniem w systemie (wielu userow, w czasie),
+  // TERAZ poprawnie odseparowana na standard/premium zamiast jednej liczby.
+  const archiveTrendBySegment = { standard: null as { avg: number | null; count: number } | null, premium: null as { avg: number | null; count: number } | null }
+  await Promise.all(
+    (['standard', 'premium'] as const).map(async (seg) => {
       const { data, error } = await marketIntelDb
         .from('portal_listings_archive')
         .select('price_per_m2')
         .ilike('city', `%${city}%`)
+        .eq('market_segment', seg)
         .not('price_per_m2', 'is', null)
         .limit(500)
 
       if (error || !data || data.length === 0) {
-        archiveTrendByGroup.set(key, { avg: null, count: 0 })
+        archiveTrendBySegment[seg] = { avg: null, count: 0 }
         return
       }
       const values = data.map((r: any) => r.price_per_m2).filter((v: number) => v > 0)
       const avg = values.length > 0 ? values.reduce((a: number, b: number) => a + b, 0) / values.length : null
-      archiveTrendByGroup.set(key, { avg, count: values.length })
+      archiveTrendBySegment[seg] = { avg, count: values.length }
     })
   )
 
-  function archiveTrendForListing(l: PortalListing) {
-    const key = rcnGroupKey(l)
-    return archiveTrendByGroup.get(key) ?? archiveTrendByGroup.get(cityFallbackKey) ?? null
-  }
-
   const scoredListings = allListings.map(listing => {
     if (!listing.area || !listing.price) {
-      return { ...listing, dealScore: null }
+      return { ...listing, marketSegment: segmentOf(listing), dealScore: null }
     }
+    const segment = segmentOf(listing)
     const offerPricePerM2 = listing.price / listing.area
     const rcnStats = rcnForListing(listing)
-    const archiveTrend = archiveTrendForListing(listing)
+    const archiveTrend = archiveTrendBySegment[segment]
     const score = calculateDealScore({
       offerPricePerM2,
       references: {
         transactionAvgPricePerM2: rcnStats?.medianPricePerM2 ?? null,
-        listingsAvgPricePerM2,
+        listingsAvgPricePerM2: listingsAvgBySegment[segment],
         archiveTrendPricePerM2: archiveTrend?.avg ?? null,
       },
     })
-    return { ...listing, dealScore: score }
+    return { ...listing, marketSegment: segment, dealScore: score }
   })
 
   // ── Zapis do wspolnej bazy rynkowej (market_intel) ──────────────────
@@ -184,13 +158,12 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     portals_searched: results.map(r => r.portal),
     errors: errors.length > 0 ? errors : undefined,
     reference_points: {
-      rcn_by_group: rcnSummaryByGroup,
-      listings_avg_price_per_m2: listingsAvgPricePerM2,
-      archive_trend_by_group: Array.from(archiveTrendByGroup.entries()).map(([key, v]) => ({
-        group: key,
-        avg_price_per_m2: v.avg,
-        sample_size: v.count,
-      })),
+      rcn_by_city: rcnSummary,
+      listings_avg_by_segment: listingsAvgBySegment,
+      archive_trend_by_segment: {
+        standard: archiveTrendBySegment.standard,
+        premium: archiveTrendBySegment.premium,
+      },
     },
   })
 })
@@ -210,6 +183,7 @@ async function archiveListings(listings: PortalListing[]) {
     rooms_count: l.rooms_count,
     price: l.price,
     price_per_m2: (l.area && l.price) ? l.price / l.area : null,
+    market_segment: detectMarketSegment({ title: l.title, description: l.description }),
     last_seen_at: new Date().toISOString(),
     raw_data: l,
   }))
