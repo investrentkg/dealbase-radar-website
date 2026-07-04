@@ -26,9 +26,13 @@ jobs:
           JWT_SECRET: test-secret-only-for-ci
           PORT: 4100
         run: |
-          npx tsx src/index.ts &
+          npx tsx src/index.ts > server.log 2>&1 &
           SERVER_PID=$!
-          sleep 3
+          sleep 5
+          SERVER_LOG=$(cat server.log | tr '\n' ' ' | cut -c1-500)
+          HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4100/health || echo "CURL_FAILED")
+          echo "::notice::SERVER_LOG: $SERVER_LOG"
+          echo "::notice::HEALTH_STATUS: $HEALTH"
           cat > flow-test.mjs << 'SCRIPT'
           const BASE = 'http://localhost:4100'
           const email = `ci-test-${Date.now()}@dealbase-test.dev`
