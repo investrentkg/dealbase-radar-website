@@ -1,0 +1,121 @@
+name: Test Auth Flow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-auth-flow:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - name: Start server
+        env:
+          RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+          RADAR_SUPABASE_SERVICE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_KEY }}
+          MARKET_INTEL_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+          MARKET_INTEL_SUPABASE_SERVICE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_KEY }}
+          JWT_SECRET: test-secret-only-for-ci
+          PORT: 4100
+        run: |
+          npx tsx src/index.ts &
+          sleep 3
+      - name: Run full flow test
+        run: |
+          cat > flow-test.mjs << 'SCRIPT'
+          const BASE = 'http://localhost:4100'
+          const email = `ci-test-${Date.now()}@dealbase-test.dev`
+          const password = 'TestPassword123'
+          const out = []
+
+          async function step(name, fn) {
+            try {
+              const result = await fn()
+              out.push({ step: name, ok: true, result })
+              return result
+            } catch (e) {
+              out.push({ step: name, ok: false, error: e.message })
+              throw e
+            }
+          }
+
+          try {
+            const reg = await step('register', async () => {
+              const r = await fetch(`${BASE}/api/auth/register`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+              })
+              const j = await r.json()
+              if (!r.ok) throw new Error(`status ${r.status}: ${JSON.stringify(j)}`)
+              return j
+            })
+
+            const login = await step('login', async () => {
+              const r = await fetch(`${BASE}/api/auth/login`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+              })
+              const j = await r.json()
+              if (!r.ok) throw new Error(`status ${r.status}: ${JSON.stringify(j)}`)
+              return j
+            })
+
+            const token = login.token
+
+            await step('create_watchlist', async () => {
+              const r = await fetch(`${BASE}/api/watchlist`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ name: 'CI test', criteria: { city: 'Kolobrzeg' } })
+              })
+              const j = await r.json()
+              if (!r.ok) throw new Error(`status ${r.status}: ${JSON.stringify(j)}`)
+              return j
+            })
+
+            await step('get_watchlist', async () => {
+              const r = await fetch(`${BASE}/api/watchlist`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              })
+              const j = await r.json()
+              if (!r.ok) throw new Error(`status ${r.status}: ${JSON.stringify(j)}`)
+              return j
+            })
+
+            await step('deal_score_calculate', async () => {
+              const r = await fetch(`${BASE}/api/deal-score/calculate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                  offerPricePerM2: 9800,
+                  references: { transactionAvgPricePerM2: 10650, listingsAvgPricePerM2: 10890, archiveTrendPricePerM2: null }
+                })
+              })
+              const j = await r.json()
+              if (!r.ok) throw new Error(`status ${r.status}: ${JSON.stringify(j)}`)
+              return j
+            })
+
+            console.log('WSZYSTKIE KROKI PRZESZLY')
+          } catch (e) {
+            console.log('BLAD W KROKU:', e.message)
+          }
+
+          console.log(JSON.stringify(out, null, 2))
+
+          const summary = out.map(s => `${s.ok ? 'OK' : 'FAIL'}:${s.step}`).join(' | ')
+          console.log(`::notice::WYNIK: ${summary}`)
+          if (out.some(s => !s.ok)) {
+            const failed = out.find(s => !s.ok)
+            console.log(`::error::${failed.step} - ${failed.error}`)
+          }
+          SCRIPT
+          node flow-test.mjs
