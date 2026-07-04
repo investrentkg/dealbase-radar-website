@@ -53,9 +53,18 @@
   .logo-sub{display:flex; align-items:center; gap:5px; margin-top:5px;}
   .logo-sub .dash{width:12px; height:2px; background:var(--blue);}
   .logo-sub span{font-size:10px; letter-spacing:1.5px; color:#8a8880; font-weight:500;}
-  nav ul{display:flex; gap:32px; list-style:none;}
-  nav a{font-size:14px; color:var(--ink-soft); transition:color .15s;}
+  nav ul{display:flex; gap:20px; list-style:none;}
+  nav a{font-size:13.5px; color:var(--ink-soft); transition:color .15s; white-space:nowrap;}
   nav a:hover{color:var(--ink);}
+  .hamburger{display:none; width:38px; height:38px; border-radius:7px; border:0.5px solid var(--line); background:var(--cream); align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
+  .hamburger svg{width:18px; height:18px;}
+  .mobile-menu{display:none; flex-direction:column; gap:2px; padding:8px 0 18px; border-top:0.5px solid var(--line);}
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{padding:10px 4px; font-size:14px; color:var(--ink-soft);}
+  @media(max-width:1180px){
+    nav{display:none;}
+    .hamburger{display:flex;}
+  }
   .btn{display:inline-flex; align-items:center; gap:6px; padding:11px 20px; border-radius:8px; font-size:14px; font-weight:500; border:0.5px solid var(--line); transition:all .15s;}
   .btn-primary{background:var(--ink); color:var(--cream); border-color:var(--ink);}
   .btn-primary:hover{background:#3a3833;}
@@ -84,8 +93,8 @@
   .blip{animation:blip 3s ease-in-out infinite;}
 
   /* Scroll-reveal (ten sam wzorzec co na investrent.com.pl i dealbase-website) */
-  .reveal{ opacity:0; transform:translateY(18px); transition:opacity 0.7s ease, transform 0.7s ease; }
-  .reveal.in{ opacity:1; transform:translateY(0); }
+  .reveal{ opacity:0; transform:translateY(32px) scale(0.98); transition:opacity 0.8s cubic-bezier(.2,.8,.2,1), transform 0.8s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in{ opacity:1; transform:translateY(0) scale(1); }
   @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } }
 
   /* CTA: subtelna, "oddychająca" poświata w kolorze niebieskim (kolor marki Radaru) */
@@ -361,7 +370,22 @@
         <li><a href="#ekosystem">Ekosystem</a></li>
       </ul>
     </nav>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Otwórz menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#21201c" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
     <a href="#kontakt" class="btn btn-primary cta-pulse">Dołącz do bety →</a>
+  </div>
+  <div class="mobile-menu" id="mobileMenu" style="padding-left:20px; padding-right:20px;">
+    <a href="#asystent-ai">Asystent AI</a>
+    <a href="#przewaga">Przewaga</a>
+    <a href="#modul">Moduły</a>
+    <a href="#w-akcji">Zobacz w akcji</a>
+    <a href="#score">Deal Score</a>
+    <a href="#roadmap">Co dalej</a>
+    <a href="#alerty">Alerty</a>
+    <a href="#dla-kogo">Dla kogo</a>
+    <a href="#cennik">Cennik</a>
+    <a href="#ekosystem">Ekosystem</a>
   </div>
 </header>
 
@@ -926,6 +950,18 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 <script>
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var hamburgerBtn = document.getElementById('hamburgerBtn');
+  var mobileMenu = document.getElementById('mobileMenu');
+  if(hamburgerBtn){
+    hamburgerBtn.addEventListener('click', function(){
+      var open = mobileMenu.classList.toggle('open');
+      hamburgerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mobileMenu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ mobileMenu.classList.remove('open'); hamburgerBtn.setAttribute('aria-expanded','false'); });
+    });
+  }
 
   // Scroll-reveal - ten sam wzorzec co na investrent.com.pl i dealbase-website
   var revealEls = document.querySelectorAll('.reveal');
