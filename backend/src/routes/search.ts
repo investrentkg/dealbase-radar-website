@@ -4,7 +4,7 @@ import { searchAllPortals, getPortalsStatus } from '../portals'
 import { PortalSearchParams, PortalListing } from '../portals/types'
 import { calculateDealScore } from '../lib/dealScoreEngine'
 import { getRcnComparables } from '../lib/cenogram'
-import { detectMarketSegment } from '../lib/marketSegment'
+import { detectMarketSegment, detectMarketSegmentDetailed } from '../lib/marketSegment'
 import { marketIntelDb } from '../db/clients'
 
 export const searchRouter = Router()
@@ -127,10 +127,11 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   )
 
   const scoredListings = allListings.map(listing => {
+    const segmentInfo = detectMarketSegmentDetailed({ title: listing.title, description: listing.description })
     if (!listing.area || !listing.price) {
-      return { ...listing, marketSegment: segmentOf(listing), dealScore: null }
+      return { ...listing, marketSegment: segmentInfo.segment, segmentConfidence: segmentInfo.confidence, dealScore: null }
     }
-    const segment = segmentOf(listing)
+    const segment = segmentInfo.segment
     const offerPricePerM2 = listing.price / listing.area
     const rcnStats = rcnForListing(listing)
     const archiveTrend = archiveTrendBySegment[segment]
@@ -142,7 +143,7 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         archiveTrendPricePerM2: archiveTrend?.avg ?? null,
       },
     })
-    return { ...listing, marketSegment: segment, dealScore: score }
+    return { ...listing, marketSegment: segment, segmentConfidence: segmentInfo.confidence, dealScore: score }
   })
 
   // ── Zapis do wspolnej bazy rynkowej (market_intel) ──────────────────
