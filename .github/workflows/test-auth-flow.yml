@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install
-      - name: Start server
+      - name: Start server and run full flow test
         env:
           RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
           RADAR_SUPABASE_SERVICE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_KEY }}
@@ -27,9 +27,8 @@ jobs:
           PORT: 4100
         run: |
           npx tsx src/index.ts &
+          SERVER_PID=$!
           sleep 3
-      - name: Run full flow test
-        run: |
           cat > flow-test.mjs << 'SCRIPT'
           const BASE = 'http://localhost:4100'
           const email = `ci-test-${Date.now()}@dealbase-test.dev`
