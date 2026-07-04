@@ -3,6 +3,9 @@ name: Test Supabase Connection
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   test-connection:
     runs-on: ubuntu-latest
@@ -22,14 +25,24 @@ jobs:
         run: |
           cat > test-connection.mjs << 'SCRIPT'
           import { createClient } from '@supabase/supabase-js'
+          import { writeFileSync } from 'fs'
           const radarDb = createClient(process.env.RADAR_SUPABASE_URL, process.env.RADAR_SUPABASE_SERVICE_KEY, { db: { schema: 'radar' } })
           const { data, error, count } = await radarDb.from('users').select('*', { count: 'exact' })
-          if (error) {
-            console.log('BLAD:', JSON.stringify(error, null, 2))
-            process.exit(1)
-          } else {
-            console.log('SUKCES - polaczenie z schematem radar dziala.')
-            console.log('Liczba uzytkownikow:', count)
+          const result = {
+            timestamp: new Date().toISOString(),
+            success: !error,
+            error: error ? error : null,
+            user_count: count ?? null
           }
+          writeFileSync('diagnostics-result.json', JSON.stringify(result, null, 2))
+          console.log(JSON.stringify(result, null, 2))
           SCRIPT
-          node test-connection.mjs
+          node test-connection.mjs || true
+      - name: Commit result back to repo
+        run: |
+          git config user.email "bot@investrentkg.dev"
+          git config user.name "DealBase Bot"
+          git add diagnostics-result.json
+          git commit -m "Diagnostics: Supabase connection test result" || echo "nothing to commit"
+          git push
+
