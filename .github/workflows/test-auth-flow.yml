@@ -25,6 +25,7 @@ jobs:
           MARKET_INTEL_SUPABASE_SERVICE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_KEY }}
           JWT_SECRET: test-secret-only-for-ci
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          CENOGRAM_API_KEY: ${{ secrets.CENOGRAM_API_KEY }}
           PORT: 4100
         run: |
           npx tsx src/index.ts > server.log 2>&1 &
@@ -121,7 +122,7 @@ jobs:
               })
               const j = await r.json()
               if (!r.ok) throw new Error(`status ${r.status}: ${JSON.stringify(j)}`)
-              return { total: j.total, portals_searched: j.portals_searched, errors: j.errors, sample: j.listings?.[0] }
+              return { total: j.total, portals_searched: j.portals_searched, errors: j.errors, reference_points: j.reference_points, sample: j.listings?.[0] }
             })
 
             console.log('WSZYSTKIE KROKI PRZESZLY')

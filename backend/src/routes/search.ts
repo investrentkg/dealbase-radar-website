@@ -3,6 +3,7 @@ import { AuthRequest, requireAuth } from '../middleware/auth'
 import { searchAllPortals, getPortalsStatus } from '../portals'
 import { PortalSearchParams, PortalListing } from '../portals/types'
 import { calculateDealScore } from '../lib/dealScoreEngine'
+import { getRcnComparables } from '../lib/cenogram'
 import { marketIntelDb } from '../db/clients'
 
 export const searchRouter = Router()
@@ -57,6 +58,27 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     ? pricesPerM2.reduce((a, b) => a + b, 0) / pricesPerM2.length
     : null
 
+  // ── Punkt 1: RCN / Cenogram ─────────────────────────────────────────
+  // Jedno zapytanie per wyszukiwanie (nie per oferta) - RCN dla calego
+  // miasta/dzielnicy jest wystarczajaco reprezentatywne, a oszczedza
+  // kredyty API. Jesli Cenogram nie jest skonfigurowany lub zawiedzie,
+  // po prostu ten punkt odniesienia bedzie null - Deal Score dziala dalej
+  // z tym co ma (patrz dealScoreEngine.ts - usedReferences pokazuje braki).
+  const rcnStats = await getRcnComparables({
+    city: params.city,
+    district: params.district || null,
+    street: null,
+    buildingNumber: null,
+    propertyType: params.property_type || 'mieszkanie',
+    area: (params.area_min && params.area_max) ? (params.area_min + params.area_max) / 2 : 50,
+    marketType: null,
+  }).catch(err => {
+    console.error('[search] Blad Cenogram/RCN:', err.message)
+    return null
+  })
+
+  const rcnAvgPricePerM2 = rcnStats?.medianPricePerM2 ?? null
+
   const scoredListings = allListings.map(listing => {
     if (!listing.area || !listing.price) {
       return { ...listing, dealScore: null }
@@ -65,7 +87,7 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const score = calculateDealScore({
       offerPricePerM2,
       references: {
-        transactionAvgPricePerM2: null, // TODO: podpiecie RCN/Cenogram
+        transactionAvgPricePerM2: rcnAvgPricePerM2,
         listingsAvgPricePerM2,
         archiveTrendPricePerM2: null,   // TODO: podpiecie market_intel.portal_listings_archive
       },
@@ -85,6 +107,15 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     total: scoredListings.length,
     portals_searched: results.map(r => r.portal),
     errors: errors.length > 0 ? errors : undefined,
+    reference_points: {
+      rcn: rcnStats ? {
+        median_price_per_m2: rcnStats.medianPricePerM2,
+        sample_size: rcnStats.count,
+        outliers_excluded: rcnStats.outliersExcluded,
+      } : null,
+      listings_avg_price_per_m2: listingsAvgPricePerM2,
+      archive_trend: null, // TODO
+    },
   })
 })
 
