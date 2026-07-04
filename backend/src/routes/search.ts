@@ -118,18 +118,54 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     sample_size: stats?.count ?? 0,
   }))
 
+  // ── Punkt 3: rosnaca wlasna baza (market_intel.portal_listings_archive) ──
+  // To NIE jest to samo co "listingsAvgPricePerM2" powyzej - tamto liczy
+  // sredni z ofert znalezionych W TYM JEDNYM wyszukiwaniu. To liczy z
+  // WSZYSTKICH ofert zarchiwizowanych historycznie (z wielu wyszukiwan,
+  // wielu userow, w czasie) - to jest ten "coraz madrzejszy asystent"
+  // z ustalen sesji brandingowej: baza rosnie z kazdym uzyciem produktu,
+  // nie trenujemy modelu od nowa, tylko mamy wiecej punktow odniesienia.
+  const archiveTrendByGroup = new Map<string, { avg: number | null; count: number }>()
+  await Promise.all(
+    Array.from(uniqueGroups.values()).map(async (group) => {
+      const key = `${group.district.toLowerCase()}|${group.marketType || 'nieznany'}`
+      if (archiveTrendByGroup.has(key)) return
+
+      const { data, error } = await marketIntelDb
+        .from('portal_listings_archive')
+        .select('price_per_m2')
+        .ilike('city', `%${city}%`)
+        .not('price_per_m2', 'is', null)
+        .limit(500)
+
+      if (error || !data || data.length === 0) {
+        archiveTrendByGroup.set(key, { avg: null, count: 0 })
+        return
+      }
+      const values = data.map((r: any) => r.price_per_m2).filter((v: number) => v > 0)
+      const avg = values.length > 0 ? values.reduce((a: number, b: number) => a + b, 0) / values.length : null
+      archiveTrendByGroup.set(key, { avg, count: values.length })
+    })
+  )
+
+  function archiveTrendForListing(l: PortalListing) {
+    const key = rcnGroupKey(l)
+    return archiveTrendByGroup.get(key) ?? archiveTrendByGroup.get(cityFallbackKey) ?? null
+  }
+
   const scoredListings = allListings.map(listing => {
     if (!listing.area || !listing.price) {
       return { ...listing, dealScore: null }
     }
     const offerPricePerM2 = listing.price / listing.area
     const rcnStats = rcnForListing(listing)
+    const archiveTrend = archiveTrendForListing(listing)
     const score = calculateDealScore({
       offerPricePerM2,
       references: {
         transactionAvgPricePerM2: rcnStats?.medianPricePerM2 ?? null,
         listingsAvgPricePerM2,
-        archiveTrendPricePerM2: null,   // TODO: podpiecie market_intel.portal_listings_archive
+        archiveTrendPricePerM2: archiveTrend?.avg ?? null,
       },
     })
     return { ...listing, dealScore: score }
@@ -150,7 +186,11 @@ searchRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     reference_points: {
       rcn_by_group: rcnSummaryByGroup,
       listings_avg_price_per_m2: listingsAvgPricePerM2,
-      archive_trend: null, // TODO
+      archive_trend_by_group: Array.from(archiveTrendByGroup.entries()).map(([key, v]) => ({
+        group: key,
+        avg_price_per_m2: v.avg,
+        sample_size: v.count,
+      })),
     },
   })
 })
